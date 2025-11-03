@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function ()
 
   let emptyCart = true;
 
-  fetch(`${Proxy_Url}/customer/cart/${sessionStorage.getItem('customerId')}`)//TODO replace with sessionStorage and check for login
+  fetch(`${Proxy_Url}/customer/cart/${sessionStorage.getItem('customerId')}`)
     .then(response => response.json())
     .then(data => {
       const productsDiv = document.getElementById('products');

@@ -10,7 +10,7 @@ function submitForm() {
   const address = document.getElementById('address').value;
   const customerId = sessionStorage.getItem('customerId');
 
-  const purchaseDto = {
+  const PurchaseRequest = {
     contactName: contactName,
     contactNumber: contactNumber,
     address: address
@@ -18,7 +18,7 @@ function submitForm() {
 
   const requestBody = {
     customerId: customerId,
-    purchaseDto: purchaseDto
+    recipient_request: PurchaseRequest
   };
 
   fetch(`${Proxy_Url}/purchase/complete`, {
