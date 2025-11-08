@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 const Backend_Url = 'http://localhost:1620';
-import productRoutes from './routes/productRoutes.js';
+const productRoutes = require( './routes/productRoutes.js');//TODO FIX
 const http = require('http');
 const url = require('url');
 const {response, request} = require("express");

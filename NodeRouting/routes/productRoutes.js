@@ -1,6 +1,6 @@
-import express from 'express';
+const express =require( 'express');
 const router = express.Router();
-
+const { Backend_Url } = require('./config.js');
 
 router.get('/featured/:page', async (req, res)=>{
   const queryParts = req.url.split("/");
@@ -26,3 +26,5 @@ router.get('/featured/:page', async (req, res)=>{
     res.status(500).json({ error: 'Failed to fetch data from the real server' });
   }
 });
+
+module.exports = router

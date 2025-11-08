@@ -235,10 +235,12 @@ document.addEventListener('DOMContentLoaded', function modeHandler() {
       //   //Not implemented
       //   break;
       case "featured":
-        fetchUrl = `${Proxy_Url}/featured/${page}`;
+        // fetchUrl = `${Proxy_Url}/featured/${page}`;
+        fetchUrl = `${Proxy_Url}/product/featured/${page}`;
         break;
       default:
-        fetchUrl = `${Proxy_Url}/featured/0`;
+        // fetchUrl = `${Proxy_Url}/featured/0`;
+        fetchUrl = `${Proxy_Url}/product/featured/0`;
         break;
     }
     getProducts(fetchUrl);
