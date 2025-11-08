@@ -6,7 +6,8 @@ async function getProducts(url) {
     console.log(`Fetch url: ${url}`);
     const data = await response.json();
     const products = data.content;
-    const totalPages = data.page.totalPages;
+    // const totalPages = data.page.totalPages;
+    const totalPages = data.totalPages;
 
     const productContainer = document.getElementById('productContainer');
     productContainer.innerHTML = '';
@@ -65,18 +66,20 @@ async function getProducts(url) {
       if (product.originalPriceStotinki !== product.salePriceStotinki) {
         const originalPrice = document.createElement('div');
         originalPrice.classList.add('product-original-price');
-        originalPrice.textContent = (product.originalPriceStotinki / 100).toFixed(2) + ' лв';
+        originalPrice.textContent = '€' + (product.originalPriceStotinki / 100).toFixed(2);
         productLink.appendChild(originalPrice);
       }
 
       const salePrice = document.createElement('div');
       salePrice.classList.add('product-price');
-      salePrice.textContent = (product.salePriceStotinki / 100).toFixed(2) + ' лв';
+      salePrice.textContent = '€' +(product.salePriceStotinki / 100).toFixed(2);
       productLink.appendChild(salePrice);
 
       productDiv.appendChild(productLink);
       productContainer.appendChild(productDiv);
     });
+
+    console.log("TOTAL PAGES " + totalPages);
     updatePagination(totalPages-1);
   } catch (error) {
     console.error('Error fetching products:', error);

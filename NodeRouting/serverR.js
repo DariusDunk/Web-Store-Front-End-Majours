@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 const Backend_Url = 'http://localhost:1620';
-
+import productRoutes from './routes/productRoutes.js';
 const http = require('http');
 const url = require('url');
 const {response, request} = require("express");
@@ -84,23 +84,23 @@ app.post(`/customer/addfavourite`, async (req, res)=>{
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(req.body)
-  });
+    });
     const responseData = await response.text();
     res.json(responseData);
   }
- catch (error) {
-  console.error('Error:', error);
-  res.status(500).json({ error: 'Internal server error' });
-}
+  catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.delete(`/customer/removefav`, async (req, res)=>{
   try {
-  const response = await fetch(`${Backend_Url}/customer/removefav`,{
-    method: 'DELETE',
+    const response = await fetch(`${Backend_Url}/customer/removefav`,{
+      method: 'DELETE',
       headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(req.body)
-  });
+      body: JSON.stringify(req.body)
+    });
     const responseData = await response.text();
     res.json(responseData);
   } catch (error)
@@ -197,30 +197,37 @@ app.get(`/search/:text/:page`, async (req, res)=>{
   }
 })
 
-app.get('/featured/:page', async (req, res)=>{
-  const queryParts = req.url.split("/");
-  const page = queryParts[2];
-  console.log("inside featured");
-  try {
-    const response = await fetch(`${Backend_Url}/product/findall?page=${page}`);
-    if (response.status === 404) {
-      res.redirect('/404.html');
-    }
-    else
-    if (!response.ok) {
-      throw new Error('Network response was not ok ' + response.statusText);
-    }
-    else
-    {
-      const data = await response.json();
-      res.json(data);
-    }
-  } catch (error)
-  {
-    console.error('Search: Error fetching data:', error);
-    res.status(500).json({ error: 'Failed to fetch data from the real server' });
-  }
-});
+
+
+
+//TODO
+// app.get('/featured/:page', async (req, res)=>{
+//   const queryParts = req.url.split("/");
+//   const page = queryParts[2];
+//   console.log("inside featured");
+//   try {
+//     const response = await fetch(`${Backend_Url}/product/findall?page=${page}`);
+//     if (response.status === 404) {
+//       res.redirect('/404.html');
+//     }
+//     else
+//     if (!response.ok) {
+//       throw new Error('Network response was not ok ' + response.statusText);
+//     }
+//     else
+//     {
+//       const data = await response.json();
+//       res.json(data);
+//     }
+//   } catch (error)
+//   {
+//     console.error('Search: Error fetching data:', error);
+//     res.status(500).json({ error: 'Failed to fetch data from the real server' });
+//   }
+// });
+
+app.use('/product', productRoutes)
+
 
 app.post('/customer/registration', async (req, res)=>{
   try{

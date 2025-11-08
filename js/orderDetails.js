@@ -35,6 +35,8 @@ function submitForm() {
         window.location.href = "MainPage.html";
       } else {
         console.error('Error submitting form:', response.statusText);
+        alert("Имаше проблем с поръчката")
+        window.location.href = "customerCart.html";
       }
     })
     .catch(error => console.error('Error submitting form:', error));

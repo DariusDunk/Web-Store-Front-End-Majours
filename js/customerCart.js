@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', function ()
           const productPrice = document.createElement('div');
           productPrice.classList.add('product-price');
           const adjustedPrice = pair.compactProductResponse.salePriceStotinki / 100;
-          productPrice.textContent = `${pair.quantity} x ${adjustedPrice} =
-          ${adjustedPrice * pair.quantity} лв.`;
+          productPrice.textContent = `${pair.quantity} x €${adjustedPrice} =
+          €${adjustedPrice * pair.quantity}`;
 
           productDetails.appendChild(productName);
           productDetails.appendChild(productPrice);
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function ()
 
         emptyCart = false;
       }
-      totalCostDiv.textContent = `Общо ${data.totalCost/100} лв.`
+      totalCostDiv.textContent = `Общо €${data.totalCost/100}`
 
     })
     .catch(error => console.error('Error fetching data:', error));
