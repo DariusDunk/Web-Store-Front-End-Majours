@@ -228,7 +228,8 @@ document.addEventListener('DOMContentLoaded', function modeHandler() {
         fetchUrl = `${Proxy_Url}/product/category/${modeDetails}/p${page}`;
         break;
       case "search":
-        fetchUrl = `${Proxy_Url}/search/${encodeURIComponent(modeDetails)}/${page}`;
+        // fetchUrl = `${Proxy_Url}/search/${encodeURIComponent(modeDetails)}/${page}`;
+        fetchUrl = `${Proxy_Url}/product/search/${encodeURIComponent(modeDetails)}/${page}`;
         break;
       // case "filter":
       //   // fetchUrl = [urlParams.get('filterQuery')];
