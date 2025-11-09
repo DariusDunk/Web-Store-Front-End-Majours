@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function ()
       const productsDiv = document.getElementById('products');
       const totalCostDiv = document.getElementById('total-cost');
 
-      if (!data.productQuantityPair.isEmpty) {
+      if (data.productQuantityPair!= null&&!data.productQuantityPair.isEmpty) {
         data.productQuantityPair.forEach(pair => {
           const productContainer = document.createElement('div');
           productContainer.classList.add('product-container');

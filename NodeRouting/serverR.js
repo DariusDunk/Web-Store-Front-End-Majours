@@ -3,176 +3,21 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 const Backend_Url = 'http://localhost:1620';
-const productRoutes = require( './routes/productRoutes.js');//TODO FIX
+const productRoutes = require( './routes/productRoutes.js');
+const categoryRoutes = require( './routes/categoryRoutes.js');
+const customerRoutes = require( './routes/customerRoutes.js');
+const purchaseRoutes = require( './routes/purchaseRoutes.js');
 const http = require('http');
 const url = require('url');
 const {response, request} = require("express");
 const test = require("node:test");
 app.use(cors());
+app.use(express.json());
 
 app.use('/product', productRoutes)
-
-app.get('/category/names', async (req, res)=> {
-  console.log("category names");
-  try {
-    const response = await fetch(`${Backend_Url}/category/names`);
-    if (response.status === 404) {
-      res.redirect('/404.html');
-    } else if (!response.ok) {
-      throw new Error('Network response was not ok ' + response.statusText);
-    } else {
-      const data = await response.json();
-      res.json(data);
-    }
-  } catch (error) {
-    console.error('Names: Error fetching data:', error);
-    res.status(500).json({error: 'Failed to fetch data from the real server'});
-  }
-
-});
-
-app.use(express.json());
-app.post(`/customer/addfavourite`, async (req, res)=>{
-  try{
-    const response = await fetch(`${Backend_Url}/customer/addfavourite`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await response.text();
-    res.json(responseData);
-  }
-  catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.delete(`/customer/removefav`, async (req, res)=>{
-  try {
-    const response = await fetch(`${Backend_Url}/customer/removefav`,{
-      method: 'DELETE',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await response.text();
-    res.json(responseData);
-  } catch (error)
-  {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-})
-
-
-
-app.post('/customer/addtocart',async  (req, res) =>{
-  try{
-    const response = await fetch(`${Backend_Url}/customer/addtocart`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await response.text();
-    res.json(responseData);
-  }
-  catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/customer/registration', async (req, res)=>{
-  try{
-    const response = await fetch(`${Backend_Url}/customer/registration`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await response.text();
-    console.log(`response: status: ${response.status} data: ${responseData}`);
-    res.status(response.status).send(responseData);
-  }
-  catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/customer/login', async (req, res)=>{
-  try{
-    const response = await fetch(`${Backend_Url}/customer/login`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await response.text();
-    res.status(response.status).send(responseData);
-  }
-  catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/customer/cart/:id',async (req,res)=>
-{
-  const queryParts = req.url.split("/");
-  const id = queryParts[3];
-
-  try{
-    const response = await fetch(`${Backend_Url}/customer/cart?id=${id}`);
-    const responseData = await response.json();
-    res.json(responseData);
-  }
-  catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/purchase/complete', async (req, res)=>{
-  try{
-
-    console.log("inside purchase complete");
-    const response = await fetch(`${Backend_Url}/purchase/complete`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(req.body)
-    });
-    // const responseData = await response.json();
-    const text = await response.text()
-    // res.json(responseData);
-
-    let responseData = null
-
-    if (text) {
-      try {
-        responseData = JSON.parse(text);
-      } catch (parseError)
-      {
-        console.error("INVALID JSON FROM BACKEND: " + text)
-        return res.status(502).json({error: "Invalid response from backend"})
-      }
-    }
-
-    res.status(response.status).json(responseData|| {})
-  }
-  catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-})
+app.use('/category', categoryRoutes)
+app.use('/customer', customerRoutes)
+app.use('/purchase', purchaseRoutes)
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

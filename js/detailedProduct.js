@@ -139,8 +139,8 @@ document.addEventListener('DOMContentLoaded', function() {
         )
       }
       const message = await response.text();
-      alert(message);
       if (response.ok) {
+        alert(message);
         if (favoritesButton.classList.contains('active')) {
           favoritesButton.classList.remove('active');
           favoritesButton.innerHTML = '<i class="unfilled-heart-icon"></i> Добави в любими';
@@ -150,6 +150,9 @@ document.addEventListener('DOMContentLoaded', function() {
           favoritesButton.innerHTML = '<i class="filled-heart-icon"></i> Премахни от любими';
       }
     }
+      else {
+        alert("Операцията не беше успешна!")
+      }
     });
 
     cartButton.addEventListener('click', async () => {
