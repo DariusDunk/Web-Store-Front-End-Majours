@@ -53,18 +53,21 @@
       </div>
       <div class="dropdown-menu" id="userDropdown">
         <a href="customerCart.html">Количка</a>
-<!--        <a href="#">История на покупките</a>-->
-<!--        <a href="#">Смяна на снимката</a>-->
+        <!--        <a href="#">История на покупките</a>-->
+        <!--        <a href="#">Смяна на снимката</a>-->
         <a id="logout" href="#">Изход</a>
       </div>
     </div>
   </div>
 </header>
-<main>
-  <h1 id="product-mode-message"></h1>
-  <div class="product-container" id="productContainer"></div>
-  <br>
-  <div class="pagination-container" id="paginationContainer"></div>
+<main class="main-container">
+  <div id="filter-sidebar" class="filter-sidebar"></div>
+  <div class="products-section">
+    <h1 id="product-mode-message"></h1>
+    <div class="product-container" id="productContainer"></div>
+    <br>
+    <div class="pagination-container" id="paginationContainer"></div>
+  </div>
 </main>
 <script src="js/menu.js"></script>
 <script src="js/products.js"></script>

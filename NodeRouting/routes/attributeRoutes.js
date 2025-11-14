@@ -2,7 +2,7 @@ const express =require( 'express');
 const router = express.Router();
 const { Backend_Url } = require('./config.js');
 
-router.post('getFilters/:categoryName', async (req, res)=>{
+router.get('/getFilters/:categoryName', async (req, res)=>{
 
   const queryParts = req.url.split("/");
   const categoryName = queryParts[2];
@@ -11,21 +11,24 @@ router.post('getFilters/:categoryName', async (req, res)=>{
   {
     const response = await fetch(`${Backend_Url}/category/filters?categoryName=${categoryName}`,
       {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(req.body)
+        body: JSON.stringify(res.body)
       });
 
     const text = await response.text();
 
     let responseData = null
 
-    if (response.status < 300 && respomse.status >= 200) {
+    if (response.status < 300 && response.status >= 200) {
       if (text) {
         try {
+
+
           responseData = JSON.parse(text)
+          // console.log(responseData);
         } catch (parseError) {
           console.error("INVALID JSON FROM BACKEND: " + text)
           return res.status(502).json({error: "Invalid response from backend"})

@@ -358,3 +358,120 @@ textarea {
 body {
   font-family: Arial, sans-serif;
 }
+
+/* Add these styles to products.css */
+
+/* Main layout */
+.main-container {
+  display: flex;
+  justify-content: flex-start;
+  padding: 20px;
+}
+
+.filter-sidebar {
+  width: 250px;
+  margin-right: 20px;
+  background-color: var(--color-white);
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  display: none; /* Hidden by default, shown via JS when in category mode */
+}
+
+.products-section {
+  flex: 1;
+}
+
+/* Filter sections */
+.filter-section {
+  margin-bottom: 20px;
+}
+
+.filter-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: var(--color-grey);
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-options label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--color-grey);
+}
+
+.filter-options input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Price slider */
+.price-slider-container {
+  position: relative;
+  height: 30px;
+}
+
+.price-slider-container input[type="range"] {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  appearance: none;
+  background: transparent;
+}
+
+.price-slider-container input[type="range"]::-webkit-slider-thumb {
+  pointer-events: all;
+  width: 15px;
+  height: 15px;
+  background-color: var(--color-o);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.price-slider-container input[type="range"]::-moz-range-thumb {
+  pointer-events: all;
+  width: 15px;
+  height: 15px;
+  background-color: var(--color-o);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Add a track simulation */
+.price-slider-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #ccc;
+  transform: translateY(-50%);
+}
+
+.price-text-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.price-text-container input[type="text"] {
+  width: 60px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 5px;
+}
+
+/* Stars in ratings */
+.filter-options .star {
+  color: var(--color-o);
+  font-size: 1rem;
+}
+
+/* Show sidebar in category mode - but actually handled in JS by populating it */
