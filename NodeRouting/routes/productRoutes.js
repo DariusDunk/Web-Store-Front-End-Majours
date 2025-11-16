@@ -5,7 +5,7 @@ const { Backend_Url } = require('./config.js');
 router.get('/featured/:page', async (req, res)=>{
   const queryParts = req.url.split("/");
   const page = queryParts[2];
-  console.log("inside featured");
+  // console.log("inside featured");
   try {
     const response = await fetch(`${Backend_Url}/product/findall?page=${page}`);
     if (response.status === 404) {
@@ -29,7 +29,7 @@ router.get('/featured/:page', async (req, res)=>{
 
 router.get('/manufacturer/:manufacturerName/p:page', async (req, res) => {
   const { manufacturerName, page} = req.params;
-  console.log("Manufacturer");
+  // console.log("Manufacturer");
   try {
     const response = await fetch(`${Backend_Url}/product/manufacturer/${manufacturerName}/p${page}`);
     if (response.status === 404) {
@@ -52,7 +52,7 @@ router.get('/manufacturer/:manufacturerName/p:page', async (req, res) => {
 
 router.get('/category/:categoryName/p:page', async (req, res) => {
   const {categoryName, page} = req.params;
-  console.log("category");
+  // console.log("category");
   try {
     const response = await fetch(`${Backend_Url}/product/category/${categoryName}/p${page}`);
     if (response.status === 404) {
@@ -76,7 +76,7 @@ router.get('/category/:categoryName/p:page', async (req, res) => {
 router.get('/detail/:productCode', async (req, res)=>{
   const { productCode } = req.params;
   const { id } = req.query;
-  console.log("detail");
+
   if (!productCode || !id) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
@@ -97,7 +97,7 @@ router.get('/detail/:productCode', async (req, res)=>{
 
 router.get('/suggest/:name', async (req, res)=>{
   try {
-    console.log("suggest");
+    // console.log("suggest");
     const queryParts = req.url.split("/");
     const text = queryParts[2];
 
@@ -118,7 +118,7 @@ router.get(`/search/:text/:page`, async (req, res)=>{
   const queryParts = req.url.split("/");
   const searchText = queryParts[2];
   const page = queryParts[3];
-  console.log("search");
+  // console.log("search");
   try {
     console.log(`front end url: ${req.url}`);
     console.log(`fetch url: ${Backend_Url}/product/search?name=${searchText}&page=${page}`);
@@ -140,5 +140,127 @@ router.get(`/search/:text/:page`, async (req, res)=>{
     res.status(500).json({ error: 'Failed to fetch data from the real server' });
   }
 });
+
+
+// router.post('/filler/:category/:page', async (req, res) => {
+//   const queryParts = req.url.split("/");
+//   const page = queryParts[2];
+//
+//   console.log('filter search');
+//
+//   const response = await fetch(`${Backend_Url}/product/filter/${page}`,
+//     {
+//       method: 'POST',
+//       body: JSON.stringify(req.body),
+//       headers: {'Content-Type': 'application/json'}
+//     });
+//
+//   if (!response.ok) {
+//     res.redirect('/404.html');
+//   }
+//   else
+//     if (!response.ok) {
+//       const text = await response.text();
+//       let responseData = null
+//
+//       if (text) {
+//         try
+//         {
+//           responseData = JSON.parse(text);
+//         }
+//         catch (e) {
+//           console.error("INVALID JSON FROM BACKEND: " + text)
+//           return res.status(502).json({error: "Invalid response from backend"})
+//         }
+//
+//       }
+//     }
+//
+//     res.status(response.status).json(responseData ||{})
+//
+// })
+
+router.get('/category-filter/:category/p:page', async (req, res) => {
+
+  console.log('filter search');
+
+  // Parse page (it's the number after 'p', e.g., '0' for first page)
+  const page = parseInt(req.params.page, 10);
+  if (isNaN(page)) {
+    return res.status(400).json({ error: 'Invalid page parameter' });
+  }
+
+  // Parse category
+  const category = decodeURIComponent(req.params.category);
+
+  console.log('category', category);
+
+  // Parse filter query params (short keys: p, m, r, a*)
+  const filters = req.query;
+
+  console.log(filters);
+
+  let minPrice = 0;
+  let maxPrice = Infinity;  // Or some default max
+  if (filters.p) {
+    const priceRange = filters.p.split('-');
+    minPrice = parseInt(priceRange[0], 10) || 0;
+    maxPrice = parseInt(priceRange[1], 10) || Infinity;
+  }
+
+  console.log("price range:" + minPrice +" - "+ maxPrice);
+
+  const manufacturers = filters.m ? filters.m.split(',').map(decodeURIComponent) : [];
+
+  console.log(manufacturers);
+
+  const ratings = filters.r ? filters.r.split(',').map(Number) : [];  // Assuming ratings are numbers
+
+  console.log("ratings: "+ ratings);
+
+  const attributes = {};
+  Object.keys(filters).forEach(key => {
+    if (key.startsWith('a')) {
+      const nameId = key.slice(1);  // e.g., '1' for 'a1'
+      attributes[nameId] = filters[key].split(',').map(decodeURIComponent);
+    }
+  });
+
+  console.log("attributes: " + JSON.stringify(attributes));
+
+  // Construct request body for backend (adjust keys as needed for your backend API)
+  const requestBody = {
+    filter_attributes: attributes,
+    product_category: category,
+    price_lowest: minPrice,
+    price_highest: maxPrice,
+    manufacturer_names: manufacturers,
+    ratings: ratings,
+
+  };
+
+  console.log("request body: " + JSON.stringify(requestBody));
+
+  try {
+    const response = await fetch(`${Backend_Url}/product/filter/${page}`, {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`Backend error: ${response.status} - ${text}`);
+      return res.status(response.status).json({ error: 'Error from backend' });
+    }
+
+    const responseData = await response.json();
+    res.status(200).json(responseData);
+  } catch (error) {
+    console.error('Proxy error:', error);
+    res.status(502).json({ error: 'Invalid response from backend' });
+  }
+});
+
 
 module.exports = router

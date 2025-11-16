@@ -4,9 +4,28 @@ const pageName = `Products.html`;
 let currentMode = '';
 let currentModeDetails = '';
 
-async function getProducts(url) {
+async function getProducts(url
+                           // ,
+                           // requestBody = null,
+                           // requestType = 'GET',
+                           // headerMap = new Map()
+) {
   try {
-    const response = await fetch(url);
+
+    //
+    // let requestBody = JSON.stringify({
+    //   customerId: sessionStorage.getItem('customerId'),
+    //   productCode: productData.productCode
+    // });
+    // if (favoritesButton.classList.contains('active')) {
+    //   response = await fetch(`${Proxy_Url}/customer/removefav`, {
+    //     method: 'DELETE',
+    //     body: requestBody,
+    //       headers: {'Content-Type': 'application/json'}
+    //   });
+
+    const response = await fetch(url)
+
     console.log(`Fetch url: ${url}`);
     const data = await response.json();
     const products = data.content;
@@ -76,7 +95,7 @@ async function getProducts(url) {
 
       const salePrice = document.createElement('div');
       salePrice.classList.add('product-price');
-      salePrice.textContent = '€' +(product.salePriceStotinki / 100).toFixed(2);
+      salePrice.textContent = '€' + (product.salePriceStotinki / 100).toFixed(2);
       productLink.appendChild(salePrice);
 
       productDiv.appendChild(productLink);
@@ -84,7 +103,7 @@ async function getProducts(url) {
     });
 
     console.log("TOTAL PAGES " + totalPages);
-    updatePagination(totalPages-1);
+    updatePagination(totalPages - 1);
   } catch (error) {
     console.error('Error fetching products:', error);
   }
@@ -146,7 +165,7 @@ function updatePagination(lastPage) {
   }
 
   if (maxPrevPages) {
-    for (let i = maxPrevPages; i >=1 ; i--) {
+    for (let i = maxPrevPages; i >= 1; i--) {
       const pageButton = document.createElement('span');
       let prevPageInteger = parseInt(currentPage) + 1 - i;
       pageButton.textContent = prevPageInteger;
@@ -217,88 +236,58 @@ async function fetchFilters(categoryName) {
   }
 }
 
-function renderFilters(filtersResponse) {
+// Render the price slider + text inputs
+function renderPriceSlider(filtersResponse) {
   const filterSidebar = document.getElementById('filter-sidebar');
-  filterSidebar.innerHTML = '';
-  filterSidebar.style.display = 'block';
 
-  if (!filtersResponse) return;
-
-  // Price Range
   const priceSection = document.createElement('div');
   priceSection.classList.add('filter-section');
+
   const priceHeader = document.createElement('h3');
   priceHeader.textContent = 'Диапазон на цените';
   priceSection.appendChild(priceHeader);
 
+  // Convert backend stotinki to euro
+  const minEuro = filtersResponse.price_lowest / 100;
+  const realMaxEuro = filtersResponse.price_highest / 100;
+
+  // Slider max is rounded up to nearest integer so users can reach real max
+  const sliderMax = Math.ceil(realMaxEuro);
+
   const minPriceInput = document.createElement('input');
   minPriceInput.id = 'min-price-slider';
   minPriceInput.type = 'range';
-  minPriceInput.min = filtersResponse.price_lowest / 100;
-  minPriceInput.max = filtersResponse.price_highest / 100;
-  minPriceInput.value = filtersResponse.price_lowest / 100;
+  minPriceInput.min = minEuro.toFixed(2);
+  minPriceInput.max = sliderMax.toFixed(2);
+  minPriceInput.value = minEuro.toFixed(2);
   minPriceInput.step = 0.01;
 
   const maxPriceInput = document.createElement('input');
   maxPriceInput.id = 'max-price-slider';
   maxPriceInput.type = 'range';
-  maxPriceInput.min = filtersResponse.price_lowest / 100;
-  maxPriceInput.max = filtersResponse.price_highest / 100;
-  maxPriceInput.value = filtersResponse.price_highest / 100;
+  maxPriceInput.min = minEuro.toFixed(2);
+  maxPriceInput.max = sliderMax.toFixed(2);
+  maxPriceInput.value = sliderMax.toFixed(2);
   maxPriceInput.step = 0.01;
+
 
   const minPriceText = document.createElement('input');
   minPriceText.id = 'min-price-text';
   minPriceText.type = 'text';
-  minPriceText.value = (filtersResponse.price_lowest / 100).toFixed(2);
+  minPriceText.value = minEuro.toFixed(2);
 
   const maxPriceText = document.createElement('input');
   maxPriceText.id = 'max-price-text';
   maxPriceText.type = 'text';
-  maxPriceText.value = (filtersResponse.price_highest / 100).toFixed(2);
-
-  // Event listeners to sync
-  minPriceInput.addEventListener('input', () => {
-    let minVal = parseFloat(minPriceInput.value);
-    let maxVal = parseFloat(maxPriceInput.value);
-    if (minVal > maxVal) minVal = maxVal;
-    minPriceInput.value = minVal;
-    minPriceText.value = minVal.toFixed(2);
-    applyFilters();
-  });
-
-  maxPriceInput.addEventListener('input', () => {
-    let minVal = parseFloat(minPriceInput.value);
-    let maxVal = parseFloat(maxPriceInput.value);
-    if (maxVal < minVal) maxVal = minVal;
-    maxPriceInput.value = maxVal;
-    maxPriceText.value = maxVal.toFixed(2);
-    applyFilters();
-  });
-
-  minPriceText.addEventListener('change', () => {
-    let val = parseFloat(minPriceText.value);
-    if (isNaN(val) || val < filtersResponse.price_lowest / 100) val = filtersResponse.price_lowest / 100;
-    if (val > parseFloat(maxPriceInput.value)) val = parseFloat(maxPriceInput.value);
-    minPriceInput.value = val;
-    minPriceText.value = val.toFixed(2);
-    applyFilters();
-  });
-
-  maxPriceText.addEventListener('change', () => {
-    let val = parseFloat(maxPriceText.value);
-    if (isNaN(val) || val > filtersResponse.price_highest / 100) val = filtersResponse.price_highest / 100;
-    if (val < parseFloat(minPriceInput.value)) val = parseFloat(minPriceInput.value);
-    maxPriceInput.value = val;
-    maxPriceText.value = val.toFixed(2);
-    applyFilters();
-  });
-
+  maxPriceText.value = realMaxEuro.toFixed(2);
+  console.log("PRICE RANGE TEXT: " + minPriceText.value + " - " + maxPriceText.value);
+  // Slider container
   const priceSliderContainer = document.createElement('div');
   priceSliderContainer.classList.add('price-slider-container');
   priceSliderContainer.appendChild(minPriceInput);
   priceSliderContainer.appendChild(maxPriceInput);
 
+  // Text input container
   const priceTextContainer = document.createElement('div');
   priceTextContainer.classList.add('price-text-container');
   priceTextContainer.appendChild(minPriceText);
@@ -307,8 +296,79 @@ function renderFilters(filtersResponse) {
 
   priceSection.appendChild(priceSliderContainer);
   priceSection.appendChild(priceTextContainer);
+
   filterSidebar.appendChild(priceSection);
 
+  // --------- EVENTS ----------
+  // While dragging: update text boxes for live feedback (no network call)
+  minPriceInput.addEventListener('input', () => {
+    let minVal = parseFloat(minPriceInput.value);
+    const maxVal = parseFloat(maxPriceInput.value);
+    if (minVal > maxVal) minVal = maxVal;
+    // don't call applyFilters() here
+    minPriceText.value = minVal.toFixed(2);
+  });
+
+  maxPriceInput.addEventListener('input', () => {
+    let maxVal = parseFloat(maxPriceInput.value);
+    const minVal = parseFloat(minPriceInput.value);
+    if (maxVal < minVal) maxVal = minVal;
+    // don't call applyFilters() here
+    maxPriceText.value = maxVal.toFixed(2);
+  });
+
+  // When user releases the slider: sync values, then call applyFilters() once
+  minPriceInput.addEventListener('change', () => {
+    let minVal = parseFloat(minPriceInput.value);
+    const maxVal = parseFloat(maxPriceInput.value);
+    if (minVal > maxVal) minVal = maxVal;
+    // normalize values before sending
+    minPriceInput.value = minVal;
+    minPriceText.value = minVal.toFixed(2);
+    applyFilters();
+  });
+
+  maxPriceInput.addEventListener('change', () => {
+    let maxVal = parseFloat(maxPriceInput.value);
+    const minVal = parseFloat(minPriceInput.value);
+    if (maxVal < minVal) maxVal = minVal;
+    maxPriceInput.value = maxVal;
+    maxPriceText.value = maxVal.toFixed(2);
+    applyFilters();
+  });
+
+  // Text inputs: keep existing behavior (you had change listeners before)
+  minPriceText.addEventListener('change', () => {
+    let val = parseFloat(minPriceText.value);
+    if (isNaN(val) || val < minEuro) val = minEuro;
+    const maxVal = parseFloat(maxPriceInput.value);
+    if (val > maxVal) val = maxVal;
+    minPriceInput.value = val;
+    minPriceText.value = val.toFixed(2);
+    applyFilters();
+  });
+
+  maxPriceText.addEventListener('change', () => {
+    let val = parseFloat(maxPriceText.value);
+    if (isNaN(val) || val > realMaxEuro) val = realMaxEuro;
+    const minVal = parseFloat(minPriceInput.value);
+    if (val < minVal) val = minVal;
+    maxPriceInput.value = val;
+    maxPriceText.value = val.toFixed(2);
+    applyFilters();
+  });
+}
+
+
+function renderFilters(filtersResponse) {
+  const filterSidebar = document.getElementById('filter-sidebar');
+  filterSidebar.innerHTML = '';
+  filterSidebar.style.display = 'block';
+
+  if (!filtersResponse) return;
+
+  // Price Range
+  renderPriceSlider(filtersResponse)
   // Manufacturers
   const manufacturersSection = document.createElement('div');
   manufacturersSection.classList.add('filter-section');
@@ -366,8 +426,7 @@ function renderFilters(filtersResponse) {
 
   ratingsSection.appendChild(ratingsList);
   filterSidebar.appendChild(ratingsSection);
-if (filtersResponse.category_attributes!=null)
-  { // Category Attributes
+  if (filtersResponse.category_attributes != null) { // Category Attributes
     Array.from(filtersResponse.category_attributes).forEach(attr => {
       const attrSection = document.createElement('div');
       attrSection.classList.add('filter-section');
@@ -383,7 +442,7 @@ if (filtersResponse.category_attributes!=null)
         checkbox.type = 'checkbox';
         checkbox.classList.add('filter-attribute');
         checkbox.value = option;
-        checkbox.dataset.nameId = attr.nameId;
+        checkbox.dataset.nameId = attr.attributeName;
         checkbox.addEventListener('change', applyFilters);
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(option));
@@ -395,14 +454,24 @@ if (filtersResponse.category_attributes!=null)
   }
 }
 
+
+function toCents(value) {
+  return Number((parseFloat(value) * 100).toFixed(0));
+}
+
 function applyFilters() {
   const filterSidebar = document.getElementById('filter-sidebar');
 
-  // Price
-  const minPriceInput = document.getElementById('min-price-slider');
-  const maxPriceInput = document.getElementById('max-price-slider');
-  const minPrice = Math.round(parseFloat(minPriceInput.value) * 100);
-  const maxPrice = Math.round(parseFloat(maxPriceInput.value) * 100);
+  // Price (take from text inputs to avoid slider precision issues)
+  const minPrice = toCents(document.getElementById('min-price-text').value);
+  const maxPrice = toCents(document.getElementById('max-price-text').value);
+
+  console.log("PRICE RANGE (cents):", minPrice, maxPrice);
+
+  // Category
+  const searchParams = new URLSearchParams(window.location.search);
+  let currentCategory = '';
+  if (searchParams.has('category')) currentCategory = searchParams.get('category');
 
   // Manufacturers
   const selectedManufacturers = Array.from(filterSidebar.querySelectorAll('.filter-manufacturer:checked')).map(cb => cb.value);
@@ -412,85 +481,99 @@ function applyFilters() {
 
   // Attributes
   const selectedAttributes = {};
+  filterSidebar.querySelectorAll('.filter-attribute:checked').forEach(cb => {
+    const nameId = cb.dataset.nameId;
+    if (!selectedAttributes[nameId]) selectedAttributes[nameId] = [];
+    selectedAttributes[nameId].push(encodeURIComponent(cb.value));
+  });
 
-  if (filterSidebar.querySelectorAll('.filter-attribute:checked')!=null)
-  {
-    filterSidebar.querySelectorAll('.filter-attribute:checked').forEach(cb => {
-      const nameId = cb.dataset.nameId;
-      if (!selectedAttributes[nameId]) {
-        selectedAttributes[nameId] = [];
-      }
-      selectedAttributes[nameId].push(encodeURIComponent(cb.value));
-    });
-  }
   // Construct filterParams
-  let filterParams = new URLSearchParams();
-  filterParams.append('minPrice', minPrice);
-  filterParams.append('maxPrice', maxPrice);
-  if (selectedManufacturers.length > 0) {
-    filterParams.append('manufacturers', selectedManufacturers.join(','));
-  }
-  if (selectedRatings.length > 0) {
-    filterParams.append('ratings', selectedRatings.join(','));
-  }
-if (selectedAttributes.length > 0)
-  {
-    Object.keys(selectedAttributes).forEach(nameId => {
-      if (selectedAttributes[nameId].length > 0) {
-        filterParams.append(`attr${nameId}`, selectedAttributes[nameId].join(','));
-      }
-    });
-  }
+  const filterParams = new URLSearchParams();
+  filterParams.append('p', `${minPrice}-${maxPrice}`);
+  if (selectedManufacturers.length) filterParams.append('m', selectedManufacturers.map(encodeURIComponent).join(','));
+  if (selectedRatings.length) filterParams.append('r', selectedRatings.join(','));
+  Object.keys(selectedAttributes).forEach(nameId => {
+    if (selectedAttributes[nameId].length) filterParams.append(`a${nameId}`, selectedAttributes[nameId].join(','));
+  });
 
-  // Update URL
-  let newSearch = new URLSearchParams();
+  // Update URL (history)
+  const newSearch = new URLSearchParams();
   newSearch.set(currentMode, currentModeDetails);
   newSearch.set('page', 1);
-  for (let [key, val] of filterParams) {
-    newSearch.set(key, val);
-  }
+  for (const [k, v] of filterParams) newSearch.set(k, v);
   history.pushState({}, '', `${pageName}?${newSearch.toString()}`);
 
-  // Construct fetchUrl
-  const extraParamsStr = filterParams.toString();
-  const fetchUrl = `${Proxy_Url}/product/category/${currentModeDetails}/p0${extraParamsStr ? '?' + extraParamsStr : ''}`;
+  // Fetch products
+  const backendPage = 0;
+  const fetchUrl = `${Proxy_Url}/product/category-filter/${encodeURIComponent(currentCategory)}/p${backendPage}${filterParams.toString() ? '?' + filterParams.toString() : ''}`;
+  console.log("Fetch URL:", fetchUrl);
   getProducts(fetchUrl);
 }
 
+
 function setFiltersFromParams() {
   const filterSidebar = document.getElementById('filter-sidebar');
-  let searchParams = new URLSearchParams(window.location.search);
+  const minSlider = document.getElementById('min-price-slider');
+  const maxSlider = document.getElementById('max-price-slider');
+  const minText = document.getElementById('min-price-text');
+  const maxText = document.getElementById('max-price-text');
 
-  // Price
-  const minPriceParam = searchParams.get('minPrice');
-  if (minPriceParam) {
-    const minEuro = parseInt(minPriceParam) / 100;
-    document.getElementById('min-price-slider').value = minEuro;
-    document.getElementById('min-price-text').value = minEuro.toFixed(2);
-  }
-  const maxPriceParam = searchParams.get('maxPrice');
-  if (maxPriceParam) {
-    const maxEuro = parseInt(maxPriceParam) / 100;
-    document.getElementById('max-price-slider').value = maxEuro;
-    document.getElementById('max-price-text').value = maxEuro.toFixed(2);
+  const searchParams = new URLSearchParams(window.location.search);
+
+  // Support two URL formats:
+  // 1) old style: minPrice & maxPrice (in cents)
+  // 2) new compact style: p=min-max (in cents)
+  let minCents = null;
+  let maxCents = null;
+
+  if (searchParams.has('p')) {
+    // p is like "1200-45000" (both in cents)
+    const parts = searchParams.get('p').split('-');
+    if (parts.length === 2) {
+      minCents = parseInt(parts[0], 10);
+      maxCents = parseInt(parts[1], 10);
+    }
+  } else {
+    if (searchParams.has('minPrice')) minCents = parseInt(searchParams.get('minPrice'), 10);
+    if (searchParams.has('maxPrice')) maxCents = parseInt(searchParams.get('maxPrice'), 10);
   }
 
-  // Manufacturers
-  const mans = searchParams.get('manufacturers')?.split(',') || [];
+  // If we have parsed values, set sliders/texts accordingly (convert cents->euro)
+  if (minCents !== null
+    // && !isNaN(minCents)
+    // && minSlider && minText
+  ) {
+    const minEuro = (minCents / 100);
+    minSlider.value = minEuro;
+    minText.value = minEuro.toFixed(2);
+  }
+  if (maxCents !== null
+    // && !isNaN(maxCents)
+    // && maxSlider && maxText
+  ) {
+    const maxEuro = (maxCents / 100);
+    // ensure max doesn't exceed slider max
+    // if (parseFloat(maxSlider.max) < maxEuro) maxSlider.value = maxSlider.max;
+    // else maxSlider.value = maxEuro;
+    maxSlider.value = Math.min(maxEuro, parseFloat(maxSlider.max));
+    maxText.value = maxEuro.toFixed(2);
+  }
+
+  // Set checkboxes etc.
+  const mans = searchParams.get('m')?.split(',').map(decodeURIComponent) || [];
   filterSidebar.querySelectorAll('.filter-manufacturer').forEach(cb => {
     cb.checked = mans.includes(cb.value);
   });
 
-  // Ratings
-  const rats = searchParams.get('ratings')?.split(',') || [];
+  const rats = searchParams.get('r')?.split(',') || [];
   filterSidebar.querySelectorAll('.filter-rating').forEach(cb => {
     cb.checked = rats.includes(cb.value);
   });
 
-  // Attributes
+  // attributes like aAttrName=val1,val2
   filterSidebar.querySelectorAll('.filter-attribute').forEach(cb => {
     const nameId = cb.dataset.nameId;
-    const attrParam = searchParams.get(`attr${nameId}`)?.split(',').map(decodeURIComponent) || [];
+    const attrParam = searchParams.get(`a${nameId}`)?.split(',').map(decodeURIComponent) || [];
     cb.checked = attrParam.includes(cb.value);
   });
 }
@@ -537,25 +620,25 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
         const filtersResponse = await fetchFilters(modeDetails);
         renderFilters(filtersResponse);
         setFiltersFromParams();
+
+        if (searchParams.has('')) {
+        }
+
         break;
       case "search":
-        // fetchUrl = `${Proxy_Url}/search/${encodeURIComponent(modeDetails)}/${page}`;
         fetchUrl = `${Proxy_Url}/product/search/${encodeURIComponent(modeDetails)}/${page}`;
         break;
-      // case "filter":
-      //   // fetchUrl = [urlParams.get('filterQuery')];
-      //   //Not implemented
-      //   break;
+      case "category-filter":
+
+        break;
       case "featured":
-        // fetchUrl = `${Proxy_Url}/featured/${page}`;
         fetchUrl = `${Proxy_Url}/product/featured/${page}`;
         break;
       default:
-        // fetchUrl = `${Proxy_Url}/featured/0`;
         fetchUrl = `${Proxy_Url}/product/featured/0}`;
         break;
     }
-    getProducts(fetchUrl);
+    await getProducts(fetchUrl);
   } else {
     window.location.href = "Login.html";
   }

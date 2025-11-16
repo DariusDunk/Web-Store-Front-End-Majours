@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch(backendUrl)
       .then(response => response.json())
       .then(data => {
+
+        // console.log(data);
         const category = data.categoryName;
         const name = data.name;
 
@@ -35,8 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const productImageDiv = document.createElement('div');
     productImageDiv.classList.add('product-image');
     const productImage = document.createElement('img');
+
     if (productData.productImages.length > 0) {
-      productImage.src = productData.productImages[0].imageFileName;
+      productImage.src = productData.productImages[0];
     }
     productImage.alt = productData.name;
     productImageDiv.appendChild(productImage);
@@ -73,14 +76,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const attributeElement = document.createElement('p');
 
       const boldAttributeName = document.createElement('b');
-      boldAttributeName.textContent = attribute.attributeName.attributeName;
+      boldAttributeName.textContent = attribute.attributeName;
 
-      if (attribute.attributeName.measurementUnit === null) {
+      if (attribute.measurementUnit === null|| attribute.measurementUnit === 'null') {
         attributeElement.appendChild(boldAttributeName);
-        attributeElement.appendChild(document.createTextNode(`: ${attribute.attributeOption}`));
+
+
+        attributeElement.appendChild(document.createTextNode(`: ${attribute.option}`));
       } else {
         attributeElement.appendChild(boldAttributeName);
-        attributeElement.appendChild(document.createTextNode(`: ${attribute.attributeOption} ${attribute.attributeName.measurementUnit}`));
+        // console.log("MEASUREMENT UNIT: " + attribute.measurementUnit)
+        attributeElement.appendChild(document.createTextNode(`: ${attribute.option} ${attribute.measurementUnit}`));
       }
 
       attributesDiv.appendChild(attributeElement);
@@ -124,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         customerId: sessionStorage.getItem('customerId'),
         productCode: productData.productCode
       });
+
       if (favoritesButton.classList.contains('active')) {
         response = await fetch(`${Proxy_Url}/customer/removefav`, {
           method: 'DELETE',
