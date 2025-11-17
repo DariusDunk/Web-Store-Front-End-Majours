@@ -399,6 +399,34 @@ function renderFilters(filtersResponse) {
   ratingsHeader.textContent = 'Рейтинг';
   ratingsSection.appendChild(ratingsHeader);
 
+  // const ratingsList = document.createElement('div');
+  // ratingsList.classList.add('filter-options');
+  // Array.from(filtersResponse.ratings).sort((a, b) => b - a).forEach(rating => {
+  //   const label = document.createElement('label');
+  //   const checkbox = document.createElement('input');
+  //   checkbox.type = 'checkbox';
+  //   checkbox.classList.add('filter-rating');
+  //   checkbox.value = rating;
+  //   checkbox.addEventListener('change', applyFilters);
+  //   label.appendChild(checkbox);
+  //   const starsContainer = document.createElement('span');
+  //   for (let i = 1; i <= 5; i++) {
+  //     const star = document.createElement('span');
+  //     star.classList.add('star');
+  //     if (i <= rating) {
+  //       star.classList.add('full');
+  //     } else {
+  //       star.classList.add('empty');
+  //     }
+  //     starsContainer.appendChild(star);
+  //   }
+  //   label.appendChild(starsContainer);
+  //   ratingsList.appendChild(label);
+  // });
+  //
+  // ratingsSection.appendChild(ratingsList);
+  // filterSidebar.appendChild(ratingsSection);
+
   const ratingsList = document.createElement('div');
   ratingsList.classList.add('filter-options');
   Array.from(filtersResponse.ratings).sort((a, b) => b - a).forEach(rating => {
@@ -407,7 +435,15 @@ function renderFilters(filtersResponse) {
     checkbox.type = 'checkbox';
     checkbox.classList.add('filter-rating');
     checkbox.value = rating;
-    checkbox.addEventListener('change', applyFilters);
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        // Uncheck all other checkboxes
+        document.querySelectorAll('.filter-rating').forEach(cb => {
+          if (cb !== this) cb.checked = false;
+        });
+      }
+      applyFilters();
+    });
     label.appendChild(checkbox);
     const starsContainer = document.createElement('span');
     for (let i = 1; i <= 5; i++) {
@@ -423,9 +459,9 @@ function renderFilters(filtersResponse) {
     label.appendChild(starsContainer);
     ratingsList.appendChild(label);
   });
-
   ratingsSection.appendChild(ratingsList);
   filterSidebar.appendChild(ratingsSection);
+
   if (filtersResponse.category_attributes != null) { // Category Attributes
     Array.from(filtersResponse.category_attributes).forEach(attr => {
       const attrSection = document.createElement('div');
@@ -466,7 +502,7 @@ function applyFilters() {
   const minPrice = toCents(document.getElementById('min-price-text').value);
   const maxPrice = toCents(document.getElementById('max-price-text').value);
 
-  console.log("PRICE RANGE (cents):", minPrice, maxPrice);
+  // console.log("PRICE RANGE (cents):", minPrice, maxPrice);
 
   // Category
   const searchParams = new URLSearchParams(window.location.search);
@@ -477,7 +513,9 @@ function applyFilters() {
   const selectedManufacturers = Array.from(filterSidebar.querySelectorAll('.filter-manufacturer:checked')).map(cb => cb.value);
 
   // Ratings
-  const selectedRatings = Array.from(filterSidebar.querySelectorAll('.filter-rating:checked')).map(cb => cb.value);
+  // const selectedRatings = Array.from(filterSidebar.querySelectorAll('.filter-rating:checked')).map(cb => cb.value);
+
+  const selectedRating = filterSidebar.querySelector('.filter-rating:checked')?.value||null;
 
   // Attributes
   const selectedAttributes = {};
@@ -491,7 +529,12 @@ function applyFilters() {
   const filterParams = new URLSearchParams();
   filterParams.append('p', `${minPrice}-${maxPrice}`);
   if (selectedManufacturers.length) filterParams.append('m', selectedManufacturers.map(encodeURIComponent).join(','));
-  if (selectedRatings.length) filterParams.append('r', selectedRatings.join(','));
+
+
+  // if (selectedRatings.length) filterParams.append('r', selectedRatings.join(','));
+  if (selectedRating) filterParams.append('r', selectedRating);
+
+
   Object.keys(selectedAttributes).forEach(nameId => {
     if (selectedAttributes[nameId].length) filterParams.append(`a${nameId}`, selectedAttributes[nameId].join(','));
   });

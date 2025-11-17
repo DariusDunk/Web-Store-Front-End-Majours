@@ -141,48 +141,9 @@ router.get(`/search/:text/:page`, async (req, res)=>{
   }
 });
 
-
-// router.post('/filler/:category/:page', async (req, res) => {
-//   const queryParts = req.url.split("/");
-//   const page = queryParts[2];
-//
-//   console.log('filter search');
-//
-//   const response = await fetch(`${Backend_Url}/product/filter/${page}`,
-//     {
-//       method: 'POST',
-//       body: JSON.stringify(req.body),
-//       headers: {'Content-Type': 'application/json'}
-//     });
-//
-//   if (!response.ok) {
-//     res.redirect('/404.html');
-//   }
-//   else
-//     if (!response.ok) {
-//       const text = await response.text();
-//       let responseData = null
-//
-//       if (text) {
-//         try
-//         {
-//           responseData = JSON.parse(text);
-//         }
-//         catch (e) {
-//           console.error("INVALID JSON FROM BACKEND: " + text)
-//           return res.status(502).json({error: "Invalid response from backend"})
-//         }
-//
-//       }
-//     }
-//
-//     res.status(response.status).json(responseData ||{})
-//
-// })
-
 router.get('/category-filter/:category/p:page', async (req, res) => {
 
-  console.log('filter search');
+  // console.log('filter search');
 
   // Parse page (it's the number after 'p', e.g., '0' for first page)
   const page = parseInt(req.params.page, 10);
@@ -193,12 +154,12 @@ router.get('/category-filter/:category/p:page', async (req, res) => {
   // Parse category
   const category = decodeURIComponent(req.params.category);
 
-  console.log('category', category);
+  // console.log('category', category);
 
   // Parse filter query params (short keys: p, m, r, a*)
   const filters = req.query;
 
-  console.log(filters);
+  // console.log(filters);
 
   let minPrice = 0;
   let maxPrice = Infinity;  // Or some default max
@@ -208,15 +169,15 @@ router.get('/category-filter/:category/p:page', async (req, res) => {
     maxPrice = parseInt(priceRange[1], 10) || Infinity;
   }
 
-  console.log("price range:" + minPrice +" - "+ maxPrice);
+  // console.log("price range:" + minPrice +" - "+ maxPrice);
 
   const manufacturers = filters.m ? filters.m.split(',').map(decodeURIComponent) : [];
 
-  console.log(manufacturers);
+  // console.log(manufacturers);
 
-  const ratings = filters.r ? filters.r.split(',').map(Number) : [];  // Assuming ratings are numbers
+  const rating = filters.r ? filters.r: null;  // Assuming ratings are numbers
 
-  console.log("ratings: "+ ratings);
+  // console.log("ratings: "+ ratings);
 
   const attributes = {};
   Object.keys(filters).forEach(key => {
@@ -235,7 +196,7 @@ router.get('/category-filter/:category/p:page', async (req, res) => {
     price_lowest: minPrice,
     price_highest: maxPrice,
     manufacturer_names: manufacturers,
-    ratings: ratings,
+    rating: rating,
 
   };
 
