@@ -1,3 +1,4 @@
+<!-- Products.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,12 +64,26 @@
 <main class="main-container">
   <div id="filter-sidebar" class="filter-sidebar"></div>
   <div class="products-section">
+    <div class="product-controls">
+      <div class="sort-container">
+        <label for="sort-select">Сортиране по: </label>
+        <select id="sort-select">
+          <option value="popularity" selected>Популярност</option>
+          <option value="price_asc">Цена възх.</option>
+          <option value="price_desc">Цена низх.</option>
+          <option value="name_asc">Азбучен ред възх.</option>
+          <option value="name_desc">Азбучен ред низх.</option>
+        </select>
+      </div>
+      <button id="filters-button">филтри</button>
+    </div>
     <h1 id="product-mode-message"></h1>
     <div class="product-container" id="productContainer"></div>
     <br>
     <div class="pagination-container" id="paginationContainer"></div>
   </div>
 </main>
+<div id="filter-overlay" class="filter-overlay"></div>
 <script src="js/menu.js"></script>
 <script src="js/products.js"></script>
 <script>

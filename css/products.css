@@ -1,3 +1,5 @@
+/* products.css */
+
 /*! HTML5 Boilerplate v9.0.1 | MIT License | https://html5boilerplate.com/ */
 
 /* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
@@ -172,9 +174,9 @@ textarea {
 }
 
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
-  (min-resolution: 1.25dppx),
-  (min-resolution: 120dpi) {
+(-webkit-min-device-pixel-ratio: 1.25),
+(min-resolution: 1.25dppx),
+(min-resolution: 120dpi) {
   /* Style adjustments for high resolution devices */
 }
 
@@ -369,13 +371,28 @@ body {
 }
 
 .filter-sidebar {
-  width: 250px;
-  margin-right: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 350px;
+  height: 100%;
   background-color: var(--color-white);
   padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  display: none; /* Hidden by default, shown via JS when in category mode */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  z-index: 1001;
+  display: none;
+}
+
+.filter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: none;
+  z-index: 1000;
 }
 
 .products-section {
@@ -406,7 +423,8 @@ body {
   color: var(--color-grey);
 }
 
-.filter-options input[type="checkbox"] {
+.filter-options input[type="checkbox"],
+.filter-options input[type="radio"] {
   margin-right: 8px;
 }
 
@@ -472,6 +490,84 @@ body {
 .filter-options .star {
   color: var(--color-o);
   font-size: 1rem;
+}
+
+/* Close button */
+#close-filters {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Filter actions */
+.filter-actions {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background-color: var(--color-white);
+  text-align: right;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-actions button {
+  padding: 8px 16px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+}
+
+#reset-filters {
+  background-color: #808080;
+}
+
+#apply-filters {
+  background-color: #FF6347;
+}
+
+/* Product controls */
+.product-controls {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 20px;
+}
+
+.sort-container {
+  display: flex;
+  align-items: center;
+}
+
+.sort-container label {
+  margin-right: 5px;
+  color: var(--color-grey);
+}
+
+.sort-container select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#filters-button {
+  padding: 5px 10px;
+  background-color: var(--color-g);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#filters-button:hover {
+  background-color: var(--color-o);
 }
 
 /* Show sidebar in category mode - but actually handled in JS by populating it */

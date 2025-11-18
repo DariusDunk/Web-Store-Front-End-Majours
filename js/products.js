@@ -1,35 +1,17 @@
+// products.js
 let Proxy_Url = 'http://localhost:3000';
 const pageName = `Products.html`;
 
 let currentMode = '';
 let currentModeDetails = '';
+let filtersData = null;
 
-async function getProducts(url
-                           // ,
-                           // requestBody = null,
-                           // requestType = 'GET',
-                           // headerMap = new Map()
-) {
+async function getProducts(url) {
   try {
-
-    //
-    // let requestBody = JSON.stringify({
-    //   customerId: sessionStorage.getItem('customerId'),
-    //   productCode: productData.productCode
-    // });
-    // if (favoritesButton.classList.contains('active')) {
-    //   response = await fetch(`${Proxy_Url}/customer/removefav`, {
-    //     method: 'DELETE',
-    //     body: requestBody,
-    //       headers: {'Content-Type': 'application/json'}
-    //   });
-
-    const response = await fetch(url)
-
-    console.log(`Fetch url: ${url}`);
+    const response = await fetch(url);
+    // console.log(`Fetch url: ${url}`);
     const data = await response.json();
     const products = data.content;
-    // const totalPages = data.page.totalPages;
     const totalPages = data.totalPages;
 
     const productContainer = document.getElementById('productContainer');
@@ -102,8 +84,12 @@ async function getProducts(url
       productContainer.appendChild(productDiv);
     });
 
-    console.log("TOTAL PAGES " + totalPages);
+    // console.log("TOTAL PAGES " + totalPages);
     updatePagination(totalPages - 1);
+    if (currentMode === "category")
+    {
+      updateFilterButton();
+    }
   } catch (error) {
     console.error('Error fetching products:', error);
   }
@@ -249,186 +235,120 @@ function renderPriceSlider(filtersResponse) {
 
   // Convert backend stotinki to euro
   const minEuro = filtersResponse.price_lowest / 100;
-  const realMaxEuro = filtersResponse.price_highest / 100;
+  const maxEuro = (filtersResponse.price_highest / 100) + 1;
 
-  // Slider max is rounded up to nearest integer so users can reach real max
-  const sliderMax = Math.ceil(realMaxEuro);
-
-  const minPriceInput = document.createElement('input');
-  minPriceInput.id = 'min-price-slider';
-  minPriceInput.type = 'range';
-  minPriceInput.min = minEuro.toFixed(2);
-  minPriceInput.max = sliderMax.toFixed(2);
-  minPriceInput.value = minEuro.toFixed(2);
-  minPriceInput.step = 0.01;
-
-  const maxPriceInput = document.createElement('input');
-  maxPriceInput.id = 'max-price-slider';
-  maxPriceInput.type = 'range';
-  maxPriceInput.min = minEuro.toFixed(2);
-  maxPriceInput.max = sliderMax.toFixed(2);
-  maxPriceInput.value = sliderMax.toFixed(2);
-  maxPriceInput.step = 0.01;
-
-
-  const minPriceText = document.createElement('input');
-  minPriceText.id = 'min-price-text';
-  minPriceText.type = 'text';
-  minPriceText.value = minEuro.toFixed(2);
-
-  const maxPriceText = document.createElement('input');
-  maxPriceText.id = 'max-price-text';
-  maxPriceText.type = 'text';
-  maxPriceText.value = realMaxEuro.toFixed(2);
-  console.log("PRICE RANGE TEXT: " + minPriceText.value + " - " + maxPriceText.value);
-  // Slider container
   const priceSliderContainer = document.createElement('div');
   priceSliderContainer.classList.add('price-slider-container');
-  priceSliderContainer.appendChild(minPriceInput);
-  priceSliderContainer.appendChild(maxPriceInput);
 
-  // Text input container
-  const priceTextContainer = document.createElement('div');
-  priceTextContainer.classList.add('price-text-container');
-  priceTextContainer.appendChild(minPriceText);
-  priceTextContainer.appendChild(document.createTextNode(' - '));
-  priceTextContainer.appendChild(maxPriceText);
+  const minSlider = document.createElement('input');
+  minSlider.type = 'range';
+  minSlider.id = 'min-price-slider';
+  minSlider.min = minEuro;
+  minSlider.max = maxEuro;
+  minSlider.value = minEuro;
+  minSlider.step = 0.01;
+  priceSliderContainer.appendChild(minSlider);
+
+  const maxSlider = document.createElement('input');
+  maxSlider.type = 'range';
+  maxSlider.id = 'max-price-slider';
+  maxSlider.min = minEuro;
+  maxSlider.max = maxEuro;
+  maxSlider.value = maxEuro;
+  maxSlider.step = 0.01;
+  priceSliderContainer.appendChild(maxSlider);
 
   priceSection.appendChild(priceSliderContainer);
+
+  const priceTextContainer = document.createElement('div');
+  priceTextContainer.classList.add('price-text-container');
+
+  const minText = document.createElement('input');
+  minText.type = 'text';
+  minText.id = 'min-price-text';
+  minText.value = (+minEuro).toFixed(2);
+  priceTextContainer.appendChild(minText);
+
+  const maxText = document.createElement('input');
+  maxText.type = 'text';
+  maxText.id = 'max-price-text';
+  maxText.value = (+maxEuro).toFixed(2);
+  priceTextContainer.appendChild(maxText);
+
   priceSection.appendChild(priceTextContainer);
 
-  filterSidebar.appendChild(priceSection);
-
-  // --------- EVENTS ----------
-  // While dragging: update text boxes for live feedback (no network call)
-  minPriceInput.addEventListener('input', () => {
-    let minVal = parseFloat(minPriceInput.value);
-    const maxVal = parseFloat(maxPriceInput.value);
-    if (minVal > maxVal) minVal = maxVal;
-    // don't call applyFilters() here
-    minPriceText.value = minVal.toFixed(2);
+  // Event listeners for sliders and text inputs
+  minSlider.addEventListener('input', () => {
+    if (parseFloat(minSlider.value) > parseFloat(maxSlider.value)) minSlider.value = maxSlider.value;
+    minText.value = parseFloat(minSlider.value).toFixed(2);
   });
-
-  maxPriceInput.addEventListener('input', () => {
-    let maxVal = parseFloat(maxPriceInput.value);
-    const minVal = parseFloat(minPriceInput.value);
-    if (maxVal < minVal) maxVal = minVal;
-    // don't call applyFilters() here
-    maxPriceText.value = maxVal.toFixed(2);
+  maxSlider.addEventListener('input', () => {
+    if (parseFloat(maxSlider.value) < parseFloat(minSlider.value)) maxSlider.value = minSlider.value;
+    maxText.value = parseFloat(maxSlider.value).toFixed(2);
   });
-
-  // When user releases the slider: sync values, then call applyFilters() once
-  minPriceInput.addEventListener('change', () => {
-    let minVal = parseFloat(minPriceInput.value);
-    const maxVal = parseFloat(maxPriceInput.value);
-    if (minVal > maxVal) minVal = maxVal;
-    // normalize values before sending
-    minPriceInput.value = minVal;
-    minPriceText.value = minVal.toFixed(2);
-    applyFilters();
-  });
-
-  maxPriceInput.addEventListener('change', () => {
-    let maxVal = parseFloat(maxPriceInput.value);
-    const minVal = parseFloat(minPriceInput.value);
-    if (maxVal < minVal) maxVal = minVal;
-    maxPriceInput.value = maxVal;
-    maxPriceText.value = maxVal.toFixed(2);
-    applyFilters();
-  });
-
-  // Text inputs: keep existing behavior (you had change listeners before)
-  minPriceText.addEventListener('change', () => {
-    let val = parseFloat(minPriceText.value);
+  minText.addEventListener('change', () => {
+    let val = parseFloat(minText.value);
     if (isNaN(val) || val < minEuro) val = minEuro;
-    const maxVal = parseFloat(maxPriceInput.value);
-    if (val > maxVal) val = maxVal;
-    minPriceInput.value = val;
-    minPriceText.value = val.toFixed(2);
-    applyFilters();
+    if (val > parseFloat(maxText.value)) val = parseFloat(maxText.value);
+    minText.value = val.toFixed(2);
+    minSlider.value = val;
+  });
+  maxText.addEventListener('change', () => {
+    let val = parseFloat(maxText.value);
+    if (isNaN(val) || val > maxEuro) val = maxEuro;
+    if (val < parseFloat(minText.value)) val = parseFloat(minText.value);
+    maxText.value = val.toFixed(2);
+    maxSlider.value = val;
   });
 
-  maxPriceText.addEventListener('change', () => {
-    let val = parseFloat(maxPriceText.value);
-    if (isNaN(val) || val > realMaxEuro) val = realMaxEuro;
-    const minVal = parseFloat(minPriceInput.value);
-    if (val < minVal) val = minVal;
-    maxPriceInput.value = val;
-    maxPriceText.value = val.toFixed(2);
-    applyFilters();
-  });
+  filterSidebar.appendChild(priceSection);
 }
 
-
-function renderFilters(filtersResponse) {
+function renderManufacturers(filtersResponse) {
   const filterSidebar = document.getElementById('filter-sidebar');
-  filterSidebar.innerHTML = '';
-  filterSidebar.style.display = 'block';
 
-  if (!filtersResponse) return;
-
-  // Price Range
-  renderPriceSlider(filtersResponse)
-  // Manufacturers
   const manufacturersSection = document.createElement('div');
   manufacturersSection.classList.add('filter-section');
+
   const manufacturersHeader = document.createElement('h3');
   manufacturersHeader.textContent = 'Производители';
   manufacturersSection.appendChild(manufacturersHeader);
 
   const manufacturersList = document.createElement('div');
   manufacturersList.classList.add('filter-options');
-  Array.from(filtersResponse.manufacturers).sort((a, b) => a.name.localeCompare(b.name)).forEach(manufacturer => {
+
+  // console.log("MANUFACTURERS: " + filtersResponse.manufacturers);
+
+  Array.from(filtersResponse.manufacturers).sort().forEach(manufacturer => {
     const label = document.createElement('label');
     const checkbox = document.createElement('input');
+    console.log(manufacturer);
     checkbox.type = 'checkbox';
     checkbox.classList.add('filter-manufacturer');
-    checkbox.value = manufacturer.id;
-    checkbox.addEventListener('change', applyFilters);
+    checkbox.value = manufacturer;
+    // checkbox.addEventListener('change', applyFilters);
     label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(manufacturer.name));
+    label.appendChild(document.createTextNode(manufacturer));
     manufacturersList.appendChild(label);
   });
+
   manufacturersSection.appendChild(manufacturersList);
   filterSidebar.appendChild(manufacturersSection);
+}
 
-  // Ratings
+function renderRatings(filtersResponse) {
+  const filterSidebar = document.getElementById('filter-sidebar');
+
   const ratingsSection = document.createElement('div');
   ratingsSection.classList.add('filter-section');
-  const ratingsHeader = document.createElement('h3');
-  ratingsHeader.textContent = 'Рейтинг';
-  ratingsSection.appendChild(ratingsHeader);
 
-  // const ratingsList = document.createElement('div');
-  // ratingsList.classList.add('filter-options');
-  // Array.from(filtersResponse.ratings).sort((a, b) => b - a).forEach(rating => {
-  //   const label = document.createElement('label');
-  //   const checkbox = document.createElement('input');
-  //   checkbox.type = 'checkbox';
-  //   checkbox.classList.add('filter-rating');
-  //   checkbox.value = rating;
-  //   checkbox.addEventListener('change', applyFilters);
-  //   label.appendChild(checkbox);
-  //   const starsContainer = document.createElement('span');
-  //   for (let i = 1; i <= 5; i++) {
-  //     const star = document.createElement('span');
-  //     star.classList.add('star');
-  //     if (i <= rating) {
-  //       star.classList.add('full');
-  //     } else {
-  //       star.classList.add('empty');
-  //     }
-  //     starsContainer.appendChild(star);
-  //   }
-  //   label.appendChild(starsContainer);
-  //   ratingsList.appendChild(label);
-  // });
-  //
-  // ratingsSection.appendChild(ratingsList);
-  // filterSidebar.appendChild(ratingsSection);
+  const ratingsHeader = document.createElement('h3');
+  ratingsHeader.textContent = 'Рейтинг над';
+  ratingsSection.appendChild(ratingsHeader);
 
   const ratingsList = document.createElement('div');
   ratingsList.classList.add('filter-options');
+
   Array.from(filtersResponse.ratings).sort((a, b) => b - a).forEach(rating => {
     const label = document.createElement('label');
     const checkbox = document.createElement('input');
@@ -442,7 +362,6 @@ function renderFilters(filtersResponse) {
           if (cb !== this) cb.checked = false;
         });
       }
-      applyFilters();
     });
     label.appendChild(checkbox);
     const starsContainer = document.createElement('span');
@@ -461,6 +380,10 @@ function renderFilters(filtersResponse) {
   });
   ratingsSection.appendChild(ratingsList);
   filterSidebar.appendChild(ratingsSection);
+}
+
+function renderAttributes(filtersResponse) {
+  const filterSidebar = document.getElementById('filter-sidebar');
 
   if (filtersResponse.category_attributes != null) { // Category Attributes
     Array.from(filtersResponse.category_attributes).forEach(attr => {
@@ -479,7 +402,7 @@ function renderFilters(filtersResponse) {
         checkbox.classList.add('filter-attribute');
         checkbox.value = option;
         checkbox.dataset.nameId = attr.attributeName;
-        checkbox.addEventListener('change', applyFilters);
+        // checkbox.addEventListener('change', applyFilters);
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(option));
         attrList.appendChild(label);
@@ -490,19 +413,54 @@ function renderFilters(filtersResponse) {
   }
 }
 
+function renderFilters(filtersResponse) {
+  const filterSidebar = document.getElementById('filter-sidebar');
+  filterSidebar.innerHTML = '';
+
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.id = 'close-filters';
+  closeBtn.textContent = 'X';
+  closeBtn.addEventListener('click', hideFiltersMenu);
+  filterSidebar.appendChild(closeBtn);
+
+  renderPriceSlider(filtersResponse);
+  renderManufacturers(filtersResponse);
+  renderRatings(filtersResponse);
+  renderAttributes(filtersResponse);
+
+  // Filter actions
+  const actions = document.createElement('div');
+  actions.classList.add('filter-actions');
+
+  const resetBtn = document.createElement('button');
+  resetBtn.id = 'reset-filters';
+  resetBtn.textContent = 'Нулиране';
+  resetBtn.addEventListener('click', resetFilters);
+  actions.appendChild(resetBtn);
+
+  const applyBtn = document.createElement('button');
+  applyBtn.id = 'apply-filters';
+  applyBtn.textContent = 'Приложи филтри';
+  applyBtn.addEventListener('click', applyFilters);
+  actions.appendChild(applyBtn);
+
+  filterSidebar.appendChild(actions);
+}
 
 function toCents(value) {
   return Number((parseFloat(value) * 100).toFixed(0));
 }
 
-function applyFilters() {
+async function applyFilters() {
   const filterSidebar = document.getElementById('filter-sidebar');
 
   // Price (take from text inputs to avoid slider precision issues)
   const minPrice = toCents(document.getElementById('min-price-text').value);
   const maxPrice = toCents(document.getElementById('max-price-text').value);
 
-  // console.log("PRICE RANGE (cents):", minPrice, maxPrice);
+  const minDefault = filtersData.price_lowest;
+  const maxDefault = filtersData.price_highest;
 
   // Category
   const searchParams = new URLSearchParams(window.location.search);
@@ -513,9 +471,7 @@ function applyFilters() {
   const selectedManufacturers = Array.from(filterSidebar.querySelectorAll('.filter-manufacturer:checked')).map(cb => cb.value);
 
   // Ratings
-  // const selectedRatings = Array.from(filterSidebar.querySelectorAll('.filter-rating:checked')).map(cb => cb.value);
-
-  const selectedRating = filterSidebar.querySelector('.filter-rating:checked')?.value||null;
+  const selectedRating = filterSidebar.querySelector('.filter-rating:checked')?.value || null;
 
   // Attributes
   const selectedAttributes = {};
@@ -527,14 +483,14 @@ function applyFilters() {
 
   // Construct filterParams
   const filterParams = new URLSearchParams();
-  filterParams.append('p', `${minPrice}-${maxPrice}`);
+  if (minPrice > minDefault || maxPrice < maxDefault) {
+    filterParams.append('p', `${minPrice}-${maxPrice}`);
+  }
+  else {
+    filterParams.append('p', `${minDefault}-${maxDefault}`);
+  }
   if (selectedManufacturers.length) filterParams.append('m', selectedManufacturers.map(encodeURIComponent).join(','));
-
-
-  // if (selectedRatings.length) filterParams.append('r', selectedRatings.join(','));
   if (selectedRating) filterParams.append('r', selectedRating);
-
-
   Object.keys(selectedAttributes).forEach(nameId => {
     if (selectedAttributes[nameId].length) filterParams.append(`a${nameId}`, selectedAttributes[nameId].join(','));
   });
@@ -550,9 +506,9 @@ function applyFilters() {
   const backendPage = 0;
   const fetchUrl = `${Proxy_Url}/product/category-filter/${encodeURIComponent(currentCategory)}/p${backendPage}${filterParams.toString() ? '?' + filterParams.toString() : ''}`;
   console.log("Fetch URL:", fetchUrl);
-  getProducts(fetchUrl);
+  await getProducts(fetchUrl);
+  hideFiltersMenu();
 }
-
 
 function setFiltersFromParams() {
   const filterSidebar = document.getElementById('filter-sidebar');
@@ -582,24 +538,23 @@ function setFiltersFromParams() {
   }
 
   // If we have parsed values, set sliders/texts accordingly (convert cents->euro)
-  if (minCents !== null
-    // && !isNaN(minCents)
-    // && minSlider && minText
-  ) {
+  const minEuroDefault = parseFloat(minSlider.min);
+  const maxEuroDefault = parseFloat(maxSlider.max);
+  if (minCents !== null) {
     const minEuro = (minCents / 100);
-    minSlider.value = minEuro;
-    minText.value = minEuro.toFixed(2);
+    minSlider.value = Math.max(minEuro, minEuroDefault);
+    minText.value = (+minSlider.value).toFixed(2);
+  } else {
+    minSlider.value = minEuroDefault;
+    minText.value = (+minEuroDefault).toFixed(2);
   }
-  if (maxCents !== null
-    // && !isNaN(maxCents)
-    // && maxSlider && maxText
-  ) {
+  if (maxCents !== null) {
     const maxEuro = (maxCents / 100);
-    // ensure max doesn't exceed slider max
-    // if (parseFloat(maxSlider.max) < maxEuro) maxSlider.value = maxSlider.max;
-    // else maxSlider.value = maxEuro;
-    maxSlider.value = Math.min(maxEuro, parseFloat(maxSlider.max));
-    maxText.value = maxEuro.toFixed(2);
+    maxSlider.value = Math.min(maxEuro, maxEuroDefault);
+    maxText.value = (+maxSlider.value).toFixed(2);
+  } else {
+    maxSlider.value = maxEuroDefault;
+    maxText.value = (+maxEuroDefault).toFixed(2);
   }
 
   // Set checkboxes etc.
@@ -608,9 +563,9 @@ function setFiltersFromParams() {
     cb.checked = mans.includes(cb.value);
   });
 
-  const rats = searchParams.get('r')?.split(',') || [];
+  const rat = searchParams.get('r');
   filterSidebar.querySelectorAll('.filter-rating').forEach(cb => {
-    cb.checked = rats.includes(cb.value);
+    cb.checked = cb.value === rat;
   });
 
   // attributes like aAttrName=val1,val2
@@ -619,6 +574,53 @@ function setFiltersFromParams() {
     const attrParam = searchParams.get(`a${nameId}`)?.split(',').map(decodeURIComponent) || [];
     cb.checked = attrParam.includes(cb.value);
   });
+}
+
+function hideFiltersMenu() {
+  document.getElementById('filter-overlay').style.display = 'none';
+  document.getElementById('filter-sidebar').style.display = 'none';
+}
+
+function resetFilters() {
+  const minSlider = document.getElementById('min-price-slider');
+  const maxSlider = document.getElementById('max-price-slider');
+  const minText = document.getElementById('min-price-text');
+  const maxText = document.getElementById('max-price-text');
+
+  document.querySelectorAll('.filter-manufacturer, .filter-attribute, .filter-rating').forEach(cb => cb.checked = false);
+
+  minSlider.value = minSlider.min;
+  maxSlider.value = maxSlider.max;
+  minText.value = parseFloat(minSlider.min).toFixed(2);
+  maxText.value = parseFloat(maxSlider.max).toFixed(2);
+
+  applyFilters();
+}
+
+function calculateFilterCount() {
+  const searchParams = new URLSearchParams(window.location.search);
+  let count = 0;
+
+  if (searchParams.has('p')) {
+    const [minC, maxC] = searchParams.get('p').split('-').map(Number);
+    if (minC > filtersData.price_lowest || maxC < filtersData.price_highest) count += 1;
+  }
+
+  count += (searchParams.get('m')?.split(',').length || 0);
+
+  count += (searchParams.has('r') ? 1 : 0);
+
+  searchParams.forEach((v, k) => {
+    if (k.startsWith('a')) count += v.split(',').length;
+  });
+
+  return count;
+}
+
+function updateFilterButton() {
+  const count = calculateFilterCount();
+  const button = document.getElementById('filters-button');
+  button.textContent = `филтри${count > 0 ? `(${count})` : ''}`;
 }
 
 document.addEventListener('DOMContentLoaded', async function modeHandler() {
@@ -650,6 +652,8 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
       extraParamsStr = searchParams.toString();
     }
 
+    console.log("EXTRA PARAMS: " + extraParamsStr);
+
     switch (mode) {
       case "manufacturer":
         document.title = `${modeDetails} продукти`;
@@ -660,19 +664,29 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
         document.title = `${modeDetails}`;
         document.getElementById("product-mode-message").textContent = `Продукти от категория ${modeDetails}:`;
         fetchUrl = `${Proxy_Url}/product/category/${modeDetails}/p${page}${extraParamsStr ? '?' + extraParamsStr : ''}`;
-        const filtersResponse = await fetchFilters(modeDetails);
-        renderFilters(filtersResponse);
-        setFiltersFromParams();
+        filtersData = await fetchFilters(modeDetails);
+        renderFilters(filtersData);
+        document.querySelector('.product-controls').style.display = 'flex';
 
-        if (searchParams.has('')) {
-        }
+        document.getElementById('filters-button').addEventListener('click', () => {
+          document.getElementById('filter-overlay').style.display = 'block';
+          document.getElementById('filter-sidebar').style.display = 'block';
+          setFiltersFromParams();
+        });
+
+        document.getElementById('filter-overlay').addEventListener('click', (e) => {
+          if (e.target === document.getElementById('filter-overlay')) hideFiltersMenu();
+        });
+
+        await applyFilters()
+
+        document.getElementById('sort-select').addEventListener('change', (e) => {
+          // TODO: Handle sorting logic here
+        });
 
         break;
       case "search":
         fetchUrl = `${Proxy_Url}/product/search/${encodeURIComponent(modeDetails)}/${page}`;
-        break;
-      case "category-filter":
-
         break;
       case "featured":
         fetchUrl = `${Proxy_Url}/product/featured/${page}`;
