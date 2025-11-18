@@ -141,7 +141,7 @@ router.get(`/search/:text/:page`, async (req, res)=>{
   }
 });
 
-router.get('/category-filter/:category/p:page', async (req, res) => {
+router.get('/category-filter/:category/pg:page', async (req, res) => {
 
   // console.log('filter search');
 
@@ -163,10 +163,16 @@ router.get('/category-filter/:category/p:page', async (req, res) => {
 
   let minPrice = 0;
   let maxPrice = Infinity;  // Or some default max
-  if (filters.p) {
-    const priceRange = filters.p.split('-');
+
+
+  if (filters.pr) {
+
+    // console.log(filters.pr);
+
+    const priceRange = filters.pr.split('-');
     minPrice = parseInt(priceRange[0], 10) || 0;
     maxPrice = parseInt(priceRange[1], 10) || Infinity;
+    // console.log( "PR: " + priceRange );
   }
 
   // console.log("price range:" + minPrice +" - "+ maxPrice);

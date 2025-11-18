@@ -100,11 +100,11 @@ function updatePagination(lastPage) {
   paginationContainer.innerHTML = '';
 
   let searchParams = new URLSearchParams(window.location.search);
-  let currentPage = parseInt(searchParams.get('page') || '1') - 1;
+  let currentPage = parseInt(searchParams.get('p') || '1') - 1;
 
-  searchParams.delete('page');
+  searchParams.delete('p');
   const baseQuery = searchParams.toString();
-  const currUrl = `${pageName}?${baseQuery ? baseQuery + '&' : ''}page=`;
+  const currUrl = `${pageName}?${baseQuery ? baseQuery + '&' : ''}p=`;
   let url = ``;
 
   const pagination = document.createElement('div');
@@ -326,7 +326,6 @@ function renderManufacturers(filtersResponse) {
     checkbox.type = 'checkbox';
     checkbox.classList.add('filter-manufacturer');
     checkbox.value = manufacturer;
-    // checkbox.addEventListener('change', applyFilters);
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode(manufacturer));
     manufacturersList.appendChild(label);
@@ -402,7 +401,6 @@ function renderAttributes(filtersResponse) {
         checkbox.classList.add('filter-attribute');
         checkbox.value = option;
         checkbox.dataset.nameId = attr.attributeName;
-        // checkbox.addEventListener('change', applyFilters);
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(option));
         attrList.appendChild(label);
@@ -442,33 +440,138 @@ function renderFilters(filtersResponse) {
   const applyBtn = document.createElement('button');
   applyBtn.id = 'apply-filters';
   applyBtn.textContent = 'Приложи филтри';
-  applyBtn.addEventListener('click', applyFilters);
+  applyBtn.addEventListener('click',async () =>{
+    let searchParams = new URLSearchParams(window.location.search);
+    let page = parseInt(searchParams.get('p') || '1');
+
+    await applyFilters(page)
+  });
   actions.appendChild(applyBtn);
 
   filterSidebar.appendChild(actions);
 }
 
 function toCents(value) {
-  return Number((parseFloat(value) * 100).toFixed(0));
+  return Number((parseFloat(value) * 100).toFixed(1));
 }
 
-async function applyFilters() {
+// async function applyFilters(page = 1) {
+//   const filterSidebar = document.getElementById('filter-sidebar');
+//
+//   const searchParams = new URLSearchParams(window.location.search);
+//
+//   // Price (take from text inputs to avoid slider precision issues)
+//   let minPrice = toCents(document.getElementById('min-price-text').value);
+//   let maxPrice = toCents(document.getElementById('max-price-text').value);
+//
+//   if (searchParams.has('pr')) {
+//     const priceRange = searchParams.get('pr').split('-');
+//     if (parseInt(priceRange[0]) !== minPrice) {
+//       minPrice = priceRange[0];
+//     }
+//
+//     if (parseInt(priceRange[1]) !== maxPrice) {
+//       maxPrice = priceRange[1];
+//     }
+//   }
+//
+//   const minDefault = filtersData.price_lowest;
+//   const maxDefault = filtersData.price_highest;
+//
+//   // Category
+//
+//   let currentCategory = '';
+//   if (searchParams.has('category')) currentCategory = searchParams.get('category');
+//
+//   // Manufacturers
+//   let selectedManufacturers = Array.from(filterSidebar.querySelectorAll('.filter-manufacturer:checked')).map(cb => cb.value);
+//
+//   if (!selectedManufacturers.length > 0&& searchParams.has('m')) {
+//     selectedManufacturers = Array.from(searchParams.get('m'));
+//   }
+//
+//   // Ratings
+//   const selectedRating = filterSidebar.querySelector('.filter-rating:checked')?.value || null;
+//
+//   // Attributes
+//   const selectedAttributes = {};
+//   filterSidebar.querySelectorAll('.filter-attribute:checked').forEach(cb => {
+//     const nameId = cb.dataset.nameId;
+//     if (!selectedAttributes[nameId]) selectedAttributes[nameId] = [];
+//     selectedAttributes[nameId].push(encodeURIComponent(cb.value));
+//   });
+//
+//   // Construct filterParams
+//   const filterParams = new URLSearchParams();
+//   filterParams.append('p', page.toString());
+//   if (minPrice > minDefault || maxPrice < maxDefault) {
+//     filterParams.append('pr', `${minPrice}-${maxPrice}`);
+//   }
+//   else {
+//     filterParams.append('pr', `${minDefault}-${maxDefault}`);
+//   }
+//   if (selectedManufacturers.length)
+//     filterParams.append('m', selectedManufacturers.map(encodeURIComponent).join(','));
+//
+//   if (selectedRating)
+//     filterParams.append('r', selectedRating);
+//
+//   Object.keys(selectedAttributes).forEach(nameId => {
+//     if (selectedAttributes[nameId].length) filterParams.append(`a${nameId}`, selectedAttributes[nameId].join(','));
+//   });
+//
+//   // Update URL (history)
+//   const newSearch = new URLSearchParams(window.location.search);
+//
+// // keep mode
+//   newSearch.set(currentMode, currentModeDetails);
+//
+// // update filter params
+//   for (const [k, v] of filterParams) newSearch.set(k, v);
+//
+// // remove old `p` param
+//   newSearch.set("p", page.toString());
+//
+//   history.pushState({}, '', `${pageName}?${newSearch.toString()}`);
+//
+//   // Fetch products
+//   // const backendPage = 0;
+//   const fetchUrl = `${Proxy_Url}/product/category-filter/${encodeURIComponent(currentCategory)}/pg${page-1}${filterParams.toString() ? '?' + filterParams.toString() : ''}`;
+//   console.log("Fetch URL:", fetchUrl);
+//   await getProducts(fetchUrl);
+//   hideFiltersMenu();
+// }
+
+async function applyFilters(page = 1) {
   const filterSidebar = document.getElementById('filter-sidebar');
 
+  const searchParams = new URLSearchParams(window.location.search);
+
   // Price (take from text inputs to avoid slider precision issues)
-  const minPrice = toCents(document.getElementById('min-price-text').value);
-  const maxPrice = toCents(document.getElementById('max-price-text').value);
+  let minPrice = toCents(document.getElementById('min-price-text').value);
+  let maxPrice = toCents(document.getElementById('max-price-text').value);
+
+  if (searchParams.has('pr')) {
+    const priceRange = searchParams.get('pr').split('-');
+    if (parseInt(priceRange[0]) > minPrice) {
+      minPrice = priceRange[0];
+    }
+
+    if (parseInt(priceRange[1]) < maxPrice) {
+      maxPrice = priceRange[1];
+    }
+  }
 
   const minDefault = filtersData.price_lowest;
   const maxDefault = filtersData.price_highest;
 
   // Category
-  const searchParams = new URLSearchParams(window.location.search);
+
   let currentCategory = '';
   if (searchParams.has('category')) currentCategory = searchParams.get('category');
 
   // Manufacturers
-  const selectedManufacturers = Array.from(filterSidebar.querySelectorAll('.filter-manufacturer:checked')).map(cb => cb.value);
+  let selectedManufacturers = Array.from(filterSidebar.querySelectorAll('.filter-manufacturer:checked')).map(cb => cb.value);
 
   // Ratings
   const selectedRating = filterSidebar.querySelector('.filter-rating:checked')?.value || null;
@@ -483,32 +586,58 @@ async function applyFilters() {
 
   // Construct filterParams
   const filterParams = new URLSearchParams();
+
+  filterParams.append('category', currentCategory);
+
+  filterParams.append('p', page.toString());
   if (minPrice > minDefault || maxPrice < maxDefault) {
-    filterParams.append('p', `${minPrice}-${maxPrice}`);
+    filterParams.append('pr', `${minPrice}-${maxPrice}`);
   }
   else {
-    filterParams.append('p', `${minDefault}-${maxDefault}`);
+    filterParams.append('pr', `${minDefault}-${maxDefault}`);
   }
-  if (selectedManufacturers.length) filterParams.append('m', selectedManufacturers.map(encodeURIComponent).join(','));
-  if (selectedRating) filterParams.append('r', selectedRating);
+  if (selectedManufacturers.length)
+    filterParams.append('m', selectedManufacturers.map(encodeURIComponent).join(','));
+  else
+  if (searchParams.has('m')) {
+    searchParams.delete('m');
+  }
+
+  if (selectedRating)
+    filterParams.append('r', selectedRating);
+  else
+  if (searchParams.has('r')) {
+    searchParams.delete('r');
+  }
+
   Object.keys(selectedAttributes).forEach(nameId => {
     if (selectedAttributes[nameId].length) filterParams.append(`a${nameId}`, selectedAttributes[nameId].join(','));
   });
 
-  // Update URL (history)
-  const newSearch = new URLSearchParams();
-  newSearch.set(currentMode, currentModeDetails);
-  newSearch.set('page', 1);
-  for (const [k, v] of filterParams) newSearch.set(k, v);
-  history.pushState({}, '', `${pageName}?${newSearch.toString()}`);
+  history.pushState({}, '', `${pageName}?${filterParams.toString()}`);
 
   // Fetch products
-  const backendPage = 0;
-  const fetchUrl = `${Proxy_Url}/product/category-filter/${encodeURIComponent(currentCategory)}/p${backendPage}${filterParams.toString() ? '?' + filterParams.toString() : ''}`;
+  // const backendPage = 0;
+  const fetchUrl = `${Proxy_Url}/product/category-filter/${encodeURIComponent(currentCategory)}/pg${page-1}${filterParams.toString() ? '?' + filterParams.toString() : ''}`;
   console.log("Fetch URL:", fetchUrl);
   await getProducts(fetchUrl);
   hideFiltersMenu();
 }
+
+async function filterFromURL() {
+  const searchParams = new URLSearchParams(window.location.search);
+
+  const page = parseInt(searchParams.get('p'));
+  const currentCategory = searchParams.get('category');
+
+  searchParams.delete('p');
+  searchParams.delete('category');
+
+  const fetchUrl = `${Proxy_Url}/product/category-filter/${encodeURIComponent(currentCategory)}/pg${page-1}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+  console.log("Fetch URL:", fetchUrl);
+  await getProducts(fetchUrl);
+}
+
 
 function setFiltersFromParams() {
   const filterSidebar = document.getElementById('filter-sidebar');
@@ -525,9 +654,9 @@ function setFiltersFromParams() {
   let minCents = null;
   let maxCents = null;
 
-  if (searchParams.has('p')) {
+  if (searchParams.has('pr')) {
     // p is like "1200-45000" (both in cents)
-    const parts = searchParams.get('p').split('-');
+    const parts = searchParams.get('pr').split('-');
     if (parts.length === 2) {
       minCents = parseInt(parts[0], 10);
       maxCents = parseInt(parts[1], 10);
@@ -581,7 +710,7 @@ function hideFiltersMenu() {
   document.getElementById('filter-sidebar').style.display = 'none';
 }
 
-function resetFilters() {
+async function resetFilters() {
   const minSlider = document.getElementById('min-price-slider');
   const maxSlider = document.getElementById('max-price-slider');
   const minText = document.getElementById('min-price-text');
@@ -594,15 +723,17 @@ function resetFilters() {
   minText.value = parseFloat(minSlider.min).toFixed(2);
   maxText.value = parseFloat(maxSlider.max).toFixed(2);
 
-  applyFilters();
+  await applyFilters();
 }
 
 function calculateFilterCount() {
   const searchParams = new URLSearchParams(window.location.search);
   let count = 0;
 
-  if (searchParams.has('p')) {
-    const [minC, maxC] = searchParams.get('p').split('-').map(Number);
+  // console.log("SEARCH PARAMS: "+ searchParams);
+
+  if (searchParams.has('pr')) {
+    const [minC, maxC] = searchParams.get('pr').split('-').map(Number);
     if (minC > filtersData.price_lowest || maxC < filtersData.price_highest) count += 1;
   }
 
@@ -626,7 +757,7 @@ function updateFilterButton() {
 document.addEventListener('DOMContentLoaded', async function modeHandler() {
   if (sessionStorage.getItem('customerId') && sessionStorage.getItem('customerName')) {
     let searchParams = new URLSearchParams(window.location.search);
-    let page = parseInt(searchParams.get('page') || '1') - 1;
+    let page = parseInt(searchParams.get('p') || '1') - 1;
     let mode = '';
     let modeDetails = '';
     const knownModes = ['manufacturer', 'category', 'search', 'featured'];
@@ -648,13 +779,15 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
     let extraParamsStr = '';
     if (mode === 'category') {
       searchParams.delete('category');
-      searchParams.delete('page');
+      searchParams.delete('p');
       extraParamsStr = searchParams.toString();
     }
 
     console.log("EXTRA PARAMS: " + extraParamsStr);
 
     switch (mode) {
+      case "":
+        break;
       case "manufacturer":
         document.title = `${modeDetails} продукти`;
         document.getElementById("product-mode-message").textContent = `Продукти на ${modeDetails}:`;
@@ -663,8 +796,13 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
       case "category":
         document.title = `${modeDetails}`;
         document.getElementById("product-mode-message").textContent = `Продукти от категория ${modeDetails}:`;
+
+        if (extraParamsStr==='')
+      {
         fetchUrl = `${Proxy_Url}/product/category/${modeDetails}/p${page}${extraParamsStr ? '?' + extraParamsStr : ''}`;
+      }
         filtersData = await fetchFilters(modeDetails);
+        await filterFromURL();
         renderFilters(filtersData);
         document.querySelector('.product-controls').style.display = 'flex';
 
@@ -677,8 +815,6 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
         document.getElementById('filter-overlay').addEventListener('click', (e) => {
           if (e.target === document.getElementById('filter-overlay')) hideFiltersMenu();
         });
-
-        await applyFilters()
 
         document.getElementById('sort-select').addEventListener('change', (e) => {
           // TODO: Handle sorting logic here
@@ -695,7 +831,11 @@ document.addEventListener('DOMContentLoaded', async function modeHandler() {
         fetchUrl = `${Proxy_Url}/product/featured/0}`;
         break;
     }
-    await getProducts(fetchUrl);
+    if (fetchUrl!== '')
+    {
+      await getProducts(fetchUrl);
+    }
+
   } else {
     window.location.href = "Login.html";
   }
